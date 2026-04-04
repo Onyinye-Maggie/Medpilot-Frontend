@@ -59,6 +59,7 @@ export default function RegisterPage() {
       username: form.name.trim(),
       email: form.email.trim().toLowerCase(),
       password: form.password,
+      confirmPassword: form.confirmPassword,
       role: form.role,
     };
 
