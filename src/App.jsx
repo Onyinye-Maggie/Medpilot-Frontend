@@ -18,13 +18,16 @@ import './index.css';
 const ProtectedRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <AppLoading />;
-  return user ? children : <Navigate to="/login" replace />;
+  if (!user) return <Navigate to="/login" replace />;
+  return children;
 };
 
 const PublicRoute = ({ children }) => {
   const { user, loading } = useAuth();
   if (loading) return <AppLoading />;
-  return !user ? children : <Navigate to="/dashboard" replace />;
+  // Only redirect away if we're certain the user is logged in
+  if (user) return <Navigate to="/dashboard" replace />;
+  return children;
 };
 
 const AppLoading = () => (

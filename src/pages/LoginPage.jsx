@@ -29,7 +29,8 @@ export default function LoginPage() {
     try {
       await login(form);
       toast.success('Welcome back!');
-      navigate('/dashboard');
+      // Use replace to ensure the auth state is picked up cleanly
+      navigate('/dashboard', { replace: true });
     } catch (err) {
       const data = err?.response?.data;
       const msg = data?.message || data?.error || 'Login failed. Check your credentials.';
