@@ -26,6 +26,7 @@ export default function RegisterPage() {
   });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const set = (field) => (e) => {
     setForm((prev) => ({ ...prev, [field]: e.target.value }));
@@ -48,31 +49,45 @@ export default function RegisterPage() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) {
-      setErrors(errs);
-      return;
-    }
+    if (Object.keys(errs).length) { setErrors(errs); return; }
+
     setLoading(true);
+    setDebugInfo(null);
+
+    const payload = {
+      name: form.name.trim(),
+      username: form.name.trim(),
+      email: form.email.trim().toLowerCase(),
+      password: form.password,
+      role: form.role,
+    };
+
     try {
-      // Send both 'name' and 'username' to handle different backend field expectations
-      await register({
-        name: form.name.trim(),
-        username: form.name.trim(),
-        email: form.email.trim().toLowerCase(),
-        password: form.password,
-        role: form.role,
-      });
+      await register(payload);
       toast.success('Account created! Welcome to MedPilot.');
       navigate('/dashboard');
     } catch (err) {
-      // Show the exact server error message so we can debug it
+      const status = err?.response?.status;
       const data = err?.response?.data;
+
+      // Show full debug info on screen
+      setDebugInfo({
+        status,
+        sentPayload: { ...payload, password: '***hidden***' },
+        serverResponse: data,
+      });
+
       const msg =
         data?.message ||
         data?.error ||
-        (Array.isArray(data?.errors) ? data.errors.map((e) => e.msg || e.message).join(', ') : null) ||
-        'Registration failed. Please try again.';
-      toast.error(msg);
+        data?.msg ||
+        (Array.isArray(data?.errors)
+          ? data.errors.map((e) => e.msg || e.message || JSON.stringify(e)).join(', ')
+          : null) ||
+        (typeof data === 'string' ? data : null) ||
+        `Server error (status ${status})`;
+
+      toast.error(msg, { duration: 6000 });
     } finally {
       setLoading(false);
     }
@@ -86,7 +101,7 @@ export default function RegisterPage() {
         <div className="auth-orb auth-orb--2" />
       </div>
 
-      <div className="auth-card">
+      <div className="auth-card" style={{ maxWidth: debugInfo ? '640px' : '440px' }}>
         <div className="auth-logo">
           <div className="auth-logo__icon"><Activity size={22} /></div>
           <span>Med<b>Pilot</b></span>
@@ -143,6 +158,36 @@ export default function RegisterPage() {
             Create Account
           </Button>
         </form>
+
+        {/* DEBUG PANEL — shows server response on failure */}
+        {debugInfo && (
+          <div style={{
+            marginTop: '20px',
+            background: '#0b1f2e',
+            border: '1px solid rgba(255,71,87,0.3)',
+            borderRadius: '10px',
+            padding: '16px',
+            fontSize: '12px',
+            fontFamily: 'monospace',
+            color: '#e8f4f0',
+            textAlign: 'left',
+          }}>
+            <p style={{ color: '#ff4757', fontWeight: 700, marginBottom: '10px' }}>
+              ⚠ Server Response (debug) — Status: {debugInfo.status}
+            </p>
+            <p style={{ color: '#7a9bac', marginBottom: '6px' }}>Payload sent:</p>
+            <pre style={{ background: '#040d14', padding: '10px', borderRadius: '6px', overflow: 'auto', marginBottom: '12px' }}>
+              {JSON.stringify(debugInfo.sentPayload, null, 2)}
+            </pre>
+            <p style={{ color: '#7a9bac', marginBottom: '6px' }}>Server said:</p>
+            <pre style={{ background: '#040d14', padding: '10px', borderRadius: '6px', overflow: 'auto' }}>
+              {JSON.stringify(debugInfo.serverResponse, null, 2)}
+            </pre>
+            <p style={{ color: '#7a9bac', marginTop: '10px', fontSize: '11px' }}>
+              📋 Copy the "Server said" block and share it so the error can be fixed.
+            </p>
+          </div>
+        )}
 
         <p className="auth-switch">
           Already have an account?{' '}
