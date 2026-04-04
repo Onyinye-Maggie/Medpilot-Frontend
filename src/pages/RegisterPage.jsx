@@ -17,34 +17,61 @@ const ROLES = [
 export default function RegisterPage() {
   const { register } = useAuth();
   const navigate = useNavigate();
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '', role: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+    role: 'patient',
+  });
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const set = (field) => (e) => { setForm({ ...form, [field]: e.target.value }); setErrors({}); };
+  const set = (field) => (e) => {
+    setForm((prev) => ({ ...prev, [field]: e.target.value }));
+    setErrors((prev) => ({ ...prev, [field]: '' }));
+  };
 
   const validate = () => {
     const e = {};
-    if (!form.name) e.name = 'Full name is required';
-    if (!form.email) e.email = 'Email is required';
-    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email';
+    if (!form.name.trim()) e.name = 'Full name is required';
+    if (!form.email.trim()) e.email = 'Email is required';
+    else if (!/\S+@\S+\.\S+/.test(form.email)) e.email = 'Invalid email address';
+    if (!form.role) e.role = 'Please select a role';
     if (!form.password) e.password = 'Password is required';
     else if (form.password.length < 8) e.password = 'Minimum 8 characters';
-    if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
+    if (!form.confirmPassword) e.confirmPassword = 'Please confirm your password';
+    else if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
     return e;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     const errs = validate();
-    if (Object.keys(errs).length) { setErrors(errs); return; }
+    if (Object.keys(errs).length) {
+      setErrors(errs);
+      return;
+    }
     setLoading(true);
     try {
-      await register({ name: form.name, email: form.email, password: form.password, role: form.role });
+      // Send both 'name' and 'username' to handle different backend field expectations
+      await register({
+        name: form.name.trim(),
+        username: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+        role: form.role,
+      });
       toast.success('Account created! Welcome to MedPilot.');
       navigate('/dashboard');
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Registration failed.';
+      // Show the exact server error message so we can debug it
+      const data = err?.response?.data;
+      const msg =
+        data?.message ||
+        data?.error ||
+        (Array.isArray(data?.errors) ? data.errors.map((e) => e.msg || e.message).join(', ') : null) ||
+        'Registration failed. Please try again.';
       toast.error(msg);
     } finally {
       setLoading(false);
@@ -69,16 +96,48 @@ export default function RegisterPage() {
         <p className="auth-subtitle">Join MedPilot to manage your practice</p>
 
         <form onSubmit={handleSubmit} className="auth-form">
-          <Input label="Full name" placeholder="Dr. Jane Smith" icon={User}
-            value={form.name} onChange={set('name')} error={errors.name} />
-          <Input label="Email address" type="email" placeholder="doctor@hospital.com" icon={Mail}
-            value={form.email} onChange={set('email')} error={errors.email} />
-          <Select label="Role" options={ROLES}
-            value={form.role} onChange={set('role')} />
-          <Input label="Password" type="password" placeholder="Min. 8 characters" icon={Lock}
-            value={form.password} onChange={set('password')} error={errors.password} />
-          <Input label="Confirm password" type="password" placeholder="Repeat password" icon={Lock}
-            value={form.confirmPassword} onChange={set('confirmPassword')} error={errors.confirmPassword} />
+          <Input
+            label="Full name *"
+            placeholder="e.g. Jane Smith"
+            icon={User}
+            value={form.name}
+            onChange={set('name')}
+            error={errors.name}
+          />
+          <Input
+            label="Email address *"
+            type="email"
+            placeholder="you@example.com"
+            icon={Mail}
+            value={form.email}
+            onChange={set('email')}
+            error={errors.email}
+          />
+          <Select
+            label="Role *"
+            options={ROLES}
+            value={form.role}
+            onChange={set('role')}
+            error={errors.role}
+          />
+          <Input
+            label="Password *"
+            type="password"
+            placeholder="Min. 8 characters"
+            icon={Lock}
+            value={form.password}
+            onChange={set('password')}
+            error={errors.password}
+          />
+          <Input
+            label="Confirm password *"
+            type="password"
+            placeholder="Repeat your password"
+            icon={Lock}
+            value={form.confirmPassword}
+            onChange={set('confirmPassword')}
+            error={errors.confirmPassword}
+          />
 
           <Button type="submit" size="lg" loading={loading} style={{ width: '100%' }}>
             Create Account
