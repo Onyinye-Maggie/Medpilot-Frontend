@@ -267,3 +267,11 @@
     display: none;
   }
 }
+
+.sidebar__link--admin {
+  color: var(--accent-warning);
+}
+.sidebar__link--admin:hover, .sidebar__link--admin.sidebar__link--active {
+  background: rgba(255,165,2,0.1);
+  color: var(--accent-warning);
+}

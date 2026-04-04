@@ -3,30 +3,6 @@ import { authAPI } from '../utils/api';
 
 const AuthContext = createContext(null);
 
-const extractToken = (data) => {
-  // Log the full response so we can see exactly what the backend returns
-  console.log('[MedPilot] Full login response data:', JSON.stringify(data, null, 2));
-  return (
-    data?.token ||
-    data?.accessToken ||
-    data?.access_token ||
-    data?.authToken ||
-    data?.jwt ||
-    data?.data?.token ||
-    data?.data?.accessToken ||
-    data?.result?.token ||
-    null
-  );
-};
-
-const extractUser = (data) =>
-  data?.user ||
-  data?.data?.user ||
-  data?.data ||
-  data?.profile ||
-  data?.result?.user ||
-  null;
-
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -45,7 +21,8 @@ export const AuthProvider = ({ children }) => {
         try {
           if (storedUser) setUser(JSON.parse(storedUser));
           const res = await authAPI.getProfile();
-          const freshUser = extractUser(res.data) || res.data;
+          // Profile returns: { success, data: { _id, name, email, role, ... } }
+          const freshUser = res.data?.data || res.data;
           if (freshUser && typeof freshUser === 'object') {
             setUser(freshUser);
             localStorage.setItem('medpilot_user', JSON.stringify(freshUser));
@@ -61,39 +38,33 @@ export const AuthProvider = ({ children }) => {
 
   const login = useCallback(async (credentials) => {
     const res = await authAPI.login(credentials);
-    const data = res.data;
+    // Response: { success, data: { user: {...}, accessToken, refreshToken } }
+    const data = res.data?.data || res.data;
+    const token = data?.accessToken;
+    const u = data?.user;
 
-    const token = extractToken(data);
-    const u = extractUser(data);
-
-    if (!token) {
-      throw new Error(
-        'Login succeeded but no token found. Check browser console for response details.'
-      );
-    }
+    if (!token) throw new Error('No access token received from server');
 
     localStorage.setItem('medpilot_token', token);
     const userToStore = u || { email: credentials.email };
     localStorage.setItem('medpilot_user', JSON.stringify(userToStore));
     setUser(userToStore);
-
     return userToStore;
   }, []);
 
-  const register = useCallback(async (data) => {
-    const res = await authAPI.register(data);
-    const resData = res.data;
-    const token = extractToken(resData);
-    const u = extractUser(resData);
-
+  const register = useCallback(async (payload) => {
+    const res = await authAPI.register(payload);
+    // Registration may or may not return a token (email verify required)
+    const data = res.data?.data || res.data;
+    const token = data?.accessToken;
+    const u = data?.user;
     if (token) {
       localStorage.setItem('medpilot_token', token);
-      const userToStore = u || { email: data.email };
+      const userToStore = u || { email: payload.email };
       localStorage.setItem('medpilot_user', JSON.stringify(userToStore));
       setUser(userToStore);
     }
-
-    return resData;
+    return res.data;
   }, []);
 
   const updateUser = useCallback((updated) => {
@@ -101,8 +72,10 @@ export const AuthProvider = ({ children }) => {
     localStorage.setItem('medpilot_user', JSON.stringify(updated));
   }, []);
 
+  const isAdmin = user?.role === 'admin';
+
   return (
-    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser, isAdmin }}>
       {children}
     </AuthContext.Provider>
   );

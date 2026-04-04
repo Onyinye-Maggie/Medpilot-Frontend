@@ -34,7 +34,7 @@ export default function ProfilePage() {
     setSavingProfile(true);
     try {
       const res = await authAPI.updateProfile(profileForm);
-      updateUser(res.data?.user || { ...user, ...profileForm });
+      updateUser(res.data?.data || res.data?.user || { ...user, ...profileForm });
       toast.success('Profile updated');
     } catch (err) {
       toast.error(err?.response?.data?.message || 'Failed to update profile');

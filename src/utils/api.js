@@ -4,24 +4,15 @@ const BASE_URL = process.env.REACT_APP_API_URL || 'https://medpilot-backend.onre
 
 const api = axios.create({
   baseURL: BASE_URL,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: { 'Content-Type': 'application/json' },
 });
 
-// Request interceptor - attach token
-api.interceptors.request.use(
-  (config) => {
-    const token = localStorage.getItem('medpilot_token');
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => Promise.reject(error)
-);
+api.interceptors.request.use((config) => {
+  const token = localStorage.getItem('medpilot_token');
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  return config;
+}, (error) => Promise.reject(error));
 
-// Response interceptor - handle 401
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -34,63 +25,51 @@ api.interceptors.response.use(
   }
 );
 
-// ─── Auth ────────────────────────────────────────────────────────────────────
+// ─── Auth ─────────────────────────────────────────────────────────────────
 export const authAPI = {
-  register: (data) => api.post('/api/auth/register', data),
-  login: (data) => api.post('/api/auth/login', data),
-  logout: () => api.post('/api/auth/logout'),
-  verifyOTP: (data) => api.post('/api/auth/verify-otp', data),
-  verifyEmail: (data) => api.post('/api/auth/verify-email', data),
-  resendOTP: (data) => api.post('/api/auth/resend-otp', data),
-  resendVerification: (data) => api.post('/api/auth/resend-verification', data),
-  getProfile: () => api.get('/api/auth/profile'),
-  updateProfile: (data) => api.put('/api/auth/profile', data),
-  changePassword: (data) => api.put('/api/auth/change-password', data),
+  register:        (data) => api.post('/api/auth/register', data),
+  login:           (data) => api.post('/api/auth/login', data),
+  verifyOTP:       (data) => api.post('/api/auth/verify-otp', data),
+  resendOTP:       (data) => api.post('/api/auth/resend-otp', data),
+  forgotPassword:  (data) => api.post('/api/auth/forgot-password', data),
+  getProfile:      ()     => api.get('/api/auth/profile'),
+  updateProfile:   (data) => api.put('/api/auth/profile', data),
+  changePassword:  (data) => api.put('/api/auth/change-password', data),
 };
 
-// ─── Patients ────────────────────────────────────────────────────────────────
-export const patientsAPI = {
-  getAll: (params) => api.get('/api/patients', { params }),
-  getById: (id) => api.get(`/api/patients/${id}`),
-  create: (data) => api.post('/api/patients', data),
-  update: (id, data) => api.put(`/api/patients/${id}`, data),
-  delete: (id) => api.delete(`/api/patients/${id}`),
-  search: (query) => api.get('/api/patients/search', { params: { q: query } }),
+// ─── Medications ──────────────────────────────────────────────────────────
+export const medicationsAPI = {
+  getAll:       (params) => api.get('/api/medications', { params }),
+  getById:      (id)     => api.get(`/api/medications/${id}`),
+  create:       (data)   => api.post('/api/medications', data),
+  update:       (id, d)  => api.put(`/api/medications/${id}`, d),
+  delete:       (id)     => api.delete(`/api/medications/${id}`),
+  refillStatus: ()       => api.get('/api/medications/refill-status'),
 };
 
-// ─── Appointments ────────────────────────────────────────────────────────────
-export const appointmentsAPI = {
-  getAll: (params) => api.get('/api/appointments', { params }),
-  getById: (id) => api.get(`/api/appointments/${id}`),
-  create: (data) => api.post('/api/appointments', data),
-  update: (id, data) => api.put(`/api/appointments/${id}`, data),
-  delete: (id) => api.delete(`/api/appointments/${id}`),
-  getToday: () => api.get('/api/appointments/today'),
-  getUpcoming: () => api.get('/api/appointments/upcoming'),
+// ─── Doses ────────────────────────────────────────────────────────────────
+export const dosesAPI = {
+  getAll:   (params) => api.get('/api/doses', { params }),
+  getById:  (id)     => api.get(`/api/doses/${id}`),
+  log:      (data)   => api.post('/api/doses', data),
+  update:   (id, d)  => api.put(`/api/doses/${id}`, d),
+  delete:   (id)     => api.delete(`/api/doses/${id}`),
 };
 
-// ─── Medical Records ─────────────────────────────────────────────────────────
-export const recordsAPI = {
-  getByPatient: (patientId) => api.get(`/api/records/patient/${patientId}`),
-  getById: (id) => api.get(`/api/records/${id}`),
-  create: (data) => api.post('/api/records', data),
-  update: (id, data) => api.put(`/api/records/${id}`, data),
-  delete: (id) => api.delete(`/api/records/${id}`),
+// ─── Refills ──────────────────────────────────────────────────────────────
+export const refillsAPI = {
+  getAll:        (params) => api.get('/api/refills', { params }),
+  getById:       (id)     => api.get(`/api/refills/${id}`),
+  create:        (data)   => api.post('/api/refills', data),
+  update:        (id, d)  => api.put(`/api/refills/${id}`, d),
+  cancel:        (id)     => api.delete(`/api/refills/${id}`),
+  updateStatus:  (id, d)  => api.put(`/api/refills/status/${id}`, d), // admin only
 };
 
-// ─── Prescriptions ───────────────────────────────────────────────────────────
-export const prescriptionsAPI = {
-  getByPatient: (patientId) => api.get(`/api/prescriptions/patient/${patientId}`),
-  getById: (id) => api.get(`/api/prescriptions/${id}`),
-  create: (data) => api.post('/api/prescriptions', data),
-  update: (id, data) => api.put(`/api/prescriptions/${id}`, data),
-  delete: (id) => api.delete(`/api/prescriptions/${id}`),
-};
-
-// ─── Dashboard ───────────────────────────────────────────────────────────────
+// ─── Dashboard ────────────────────────────────────────────────────────────
 export const dashboardAPI = {
-  getStats: () => api.get('/api/dashboard/stats'),
-  getRecentActivity: () => api.get('/api/dashboard/activity'),
+  get:              () => api.get('/api/dashboard'),
+  adherenceHistory: () => api.get('/api/dashboard/adherence-history'),
 };
 
 export default api;
