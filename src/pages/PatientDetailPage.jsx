@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, User, Phone, Mail, MapPin, Droplets, AlertTriangle, FileText, Pill, Calendar } from 'lucide-react';
+import { ArrowLeft, User, Phone, Mail, MapPin, AlertTriangle, FileText, Pill, Calendar } from 'lucide-react';
 import { patientsAPI, recordsAPI, prescriptionsAPI, appointmentsAPI } from '../utils/api';
 import { Button, Card, Badge, Spinner, EmptyState } from '../components/UI';
 import { format } from 'date-fns';

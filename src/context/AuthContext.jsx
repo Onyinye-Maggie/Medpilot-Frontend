@@ -6,7 +6,12 @@ const AuthContext = createContext(null);
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [token, setToken] = useState(localStorage.getItem('medpilot_token'));
+
+  const logout = useCallback(() => {
+    localStorage.removeItem('medpilot_token');
+    localStorage.removeItem('medpilot_user');
+    setUser(null);
+  }, []);
 
   useEffect(() => {
     const initAuth = async () => {
@@ -24,14 +29,13 @@ export const AuthProvider = ({ children }) => {
       setLoading(false);
     };
     initAuth();
-  }, []);
+  }, [logout]);
 
   const login = useCallback(async (credentials) => {
     const res = await authAPI.login(credentials);
     const { token: t, user: u } = res.data;
     localStorage.setItem('medpilot_token', t);
     localStorage.setItem('medpilot_user', JSON.stringify(u));
-    setToken(t);
     setUser(u);
     return u;
   }, []);
@@ -41,16 +45,8 @@ export const AuthProvider = ({ children }) => {
     const { token: t, user: u } = res.data;
     localStorage.setItem('medpilot_token', t);
     localStorage.setItem('medpilot_user', JSON.stringify(u));
-    setToken(t);
     setUser(u);
     return u;
-  }, []);
-
-  const logout = useCallback(() => {
-    localStorage.removeItem('medpilot_token');
-    localStorage.removeItem('medpilot_user');
-    setToken(null);
-    setUser(null);
   }, []);
 
   const updateUser = useCallback((updated) => {
@@ -59,7 +55,7 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, updateUser }}>
+    <AuthContext.Provider value={{ user, loading, login, register, logout, updateUser }}>
       {children}
     </AuthContext.Provider>
   );

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Users, Calendar, FileText, Pill, Clock, TrendingUp } from 'lucide-react';
 import { dashboardAPI, appointmentsAPI } from '../utils/api';
-import { StatCard, Card, Badge, PageHeader, Spinner } from '../components/UI';
+import { StatCard, Card, Badge, PageHeader } from '../components/UI';
 import { useAuth } from '../context/AuthContext';
 import { format } from 'date-fns';
 import './DashboardPage.css';

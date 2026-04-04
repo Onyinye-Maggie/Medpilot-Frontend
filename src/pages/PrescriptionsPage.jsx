@@ -3,7 +3,7 @@ import { Plus, Search, Pill } from 'lucide-react';
 import { prescriptionsAPI, patientsAPI } from '../utils/api';
 import {
   PageHeader, Button, Input, Select, Textarea,
-  Modal, Table, Badge, Card, EmptyState
+  Modal, Table, Badge, Card
 } from '../components/UI';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';

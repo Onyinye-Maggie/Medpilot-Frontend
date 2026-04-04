@@ -1,9 +1,9 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Plus, Calendar, Search } from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { appointmentsAPI, patientsAPI } from '../utils/api';
 import {
   PageHeader, Button, Input, Select, Textarea,
-  Modal, Table, Badge, Card, EmptyState
+  Modal, Table, Badge, Card
 } from '../components/UI';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';

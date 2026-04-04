@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { Users, Plus, Search, Phone, Mail, User } from 'lucide-react';
+import { Plus, Search, Phone, Mail } from 'lucide-react';
 import { patientsAPI } from '../utils/api';
 import {
   PageHeader, Button, Input, Card, Badge, Modal,
