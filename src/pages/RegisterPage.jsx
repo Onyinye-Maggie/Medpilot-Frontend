@@ -7,6 +7,7 @@ import toast from 'react-hot-toast';
 import './AuthPages.css';
 
 const ROLES = [
+  { value: 'patient', label: 'Patient' },
   { value: 'doctor', label: 'Doctor' },
   { value: 'nurse', label: 'Nurse' },
   { value: 'admin', label: 'Admin' },
