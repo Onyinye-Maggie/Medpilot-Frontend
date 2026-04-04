@@ -41,6 +41,8 @@ export default function RegisterPage() {
     if (!form.role) e.role = 'Please select a role';
     if (!form.password) e.password = 'Password is required';
     else if (form.password.length < 8) e.password = 'Minimum 8 characters';
+    else if (!/(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-={}|;:,.<>?])/.test(form.password))
+      e.password = 'Must include uppercase, lowercase, number & special character (e.g. Abc@1234)';
     if (!form.confirmPassword) e.confirmPassword = 'Please confirm your password';
     else if (form.password !== form.confirmPassword) e.confirmPassword = 'Passwords do not match';
     return e;
@@ -138,9 +140,9 @@ export default function RegisterPage() {
             error={errors.role}
           />
           <Input
-            label="Password *"
+            label="Password * (uppercase, lowercase, number & special char)"
             type="password"
-            placeholder="Min. 8 characters"
+            placeholder="e.g. Abc@1234"
             icon={Lock}
             value={form.password}
             onChange={set('password')}

@@ -3,20 +3,28 @@ import { authAPI } from '../utils/api';
 
 const AuthContext = createContext(null);
 
-// Safely extract token from any response shape
-const extractToken = (data) =>
-  data?.token ||
-  data?.accessToken ||
-  data?.access_token ||
-  data?.authToken ||
-  null;
+const extractToken = (data) => {
+  // Log the full response so we can see exactly what the backend returns
+  console.log('[MedPilot] Full login response data:', JSON.stringify(data, null, 2));
+  return (
+    data?.token ||
+    data?.accessToken ||
+    data?.access_token ||
+    data?.authToken ||
+    data?.jwt ||
+    data?.data?.token ||
+    data?.data?.accessToken ||
+    data?.result?.token ||
+    null
+  );
+};
 
-// Safely extract user from any response shape
 const extractUser = (data) =>
   data?.user ||
   data?.data?.user ||
   data?.data ||
   data?.profile ||
+  data?.result?.user ||
   null;
 
 export const AuthProvider = ({ children }) => {
@@ -35,12 +43,10 @@ export const AuthProvider = ({ children }) => {
       const storedUser = localStorage.getItem('medpilot_user');
       if (storedToken) {
         try {
-          // Restore from storage immediately so UI doesn't flash
           if (storedUser) setUser(JSON.parse(storedUser));
-          // Then revalidate with server
           const res = await authAPI.getProfile();
           const freshUser = extractUser(res.data) || res.data;
-          if (freshUser) {
+          if (freshUser && typeof freshUser === 'object') {
             setUser(freshUser);
             localStorage.setItem('medpilot_user', JSON.stringify(freshUser));
           }
@@ -61,14 +67,12 @@ export const AuthProvider = ({ children }) => {
     const u = extractUser(data);
 
     if (!token) {
-      // Some backends return 200 but embed token differently — log for debug
-      console.warn('[MedPilot] Login response did not contain a recognisable token:', data);
-      throw new Error('No token in server response');
+      throw new Error(
+        'Login succeeded but no token found. Check browser console for response details.'
+      );
     }
 
     localStorage.setItem('medpilot_token', token);
-
-    // Store whatever user info we have; fall back to a minimal object
     const userToStore = u || { email: credentials.email };
     localStorage.setItem('medpilot_user', JSON.stringify(userToStore));
     setUser(userToStore);
@@ -79,11 +83,9 @@ export const AuthProvider = ({ children }) => {
   const register = useCallback(async (data) => {
     const res = await authAPI.register(data);
     const resData = res.data;
-
     const token = extractToken(resData);
     const u = extractUser(resData);
 
-    // Registration might not return a token (email verify required)
     if (token) {
       localStorage.setItem('medpilot_token', token);
       const userToStore = u || { email: data.email };
