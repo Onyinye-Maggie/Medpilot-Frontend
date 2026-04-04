@@ -31,8 +31,21 @@ export default function LoginPage() {
       toast.success('Welcome back!');
       navigate('/dashboard');
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Login failed. Check your credentials.';
-      toast.error(msg);
+      const data = err?.response?.data;
+      const msg = data?.message || data?.error || 'Login failed. Check your credentials.';
+
+      // If account not verified, redirect to OTP page
+      const unverifiedKeywords = ['verify', 'verification', 'not verified', 'otp', 'confirm'];
+      const needsVerification = unverifiedKeywords.some((kw) =>
+        msg.toLowerCase().includes(kw)
+      );
+
+      if (needsVerification) {
+        toast('Please verify your email first', { icon: '📧' });
+        navigate('/verify-otp', { state: { email: form.email } });
+      } else {
+        toast.error(msg);
+      }
     } finally {
       setLoading(false);
     }

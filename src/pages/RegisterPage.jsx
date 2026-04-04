@@ -65,8 +65,9 @@ export default function RegisterPage() {
 
     try {
       await register(payload);
-      toast.success('Account created! Welcome to MedPilot.');
-      navigate('/dashboard');
+      toast.success('Account created! Please verify your email.');
+      // Redirect to OTP page, pass email and password so we can auto-login after verify
+      navigate('/verify-otp', { state: { email: payload.email, password: form.password, fromRegister: true } });
     } catch (err) {
       const status = err?.response?.status;
       const data = err?.response?.data;

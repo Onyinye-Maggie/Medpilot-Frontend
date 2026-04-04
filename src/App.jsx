@@ -12,6 +12,7 @@ import AppointmentsPage from './pages/AppointmentsPage';
 import PrescriptionsPage from './pages/PrescriptionsPage';
 import MedicalRecordsPage from './pages/MedicalRecordsPage';
 import ProfilePage from './pages/ProfilePage';
+import OTPPage from './pages/OTPPage';
 import './index.css';
 
 const ProtectedRoute = ({ children }) => {
@@ -49,6 +50,7 @@ function AppRoutes() {
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
       <Route path="/login" element={<PublicRoute><LoginPage /></PublicRoute>} />
       <Route path="/register" element={<PublicRoute><RegisterPage /></PublicRoute>} />
+      <Route path="/verify-otp" element={<OTPPage />} />
       <Route path="/" element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="dashboard" element={<DashboardPage />} />
         <Route path="patients" element={<PatientsPage />} />
