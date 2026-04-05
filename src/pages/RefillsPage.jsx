@@ -4,6 +4,7 @@ import { refillsAPI, medicationsAPI } from '../utils/api';
 import { PageHeader, Button, Input, Select, Textarea, Modal, Table, Badge, Card } from '../components/UI';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import './ResponsiveGrid.css';
 
 const DEFAULT = { medication:'', pharmacyName:'', pharmacyAddress:'', pharmacyPhone:'', quantity:'', notes:'', isUrgent:false };
 

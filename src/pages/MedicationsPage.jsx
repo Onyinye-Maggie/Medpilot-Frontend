@@ -4,6 +4,7 @@ import { medicationsAPI } from '../utils/api';
 import { PageHeader, Button, Input, Select, Textarea, Modal, Table, Badge, Card } from '../components/UI';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import './ResponsiveGrid.css';
 
 const FREQ_OPTIONS = [
   { value:'once_daily', label:'Once daily' },
@@ -102,7 +103,7 @@ export default function MedicationsPage() {
       <Table columns={columns} data={filtered} loading={loading} emptyMessage="No medications found"/>
       <Modal isOpen={showModal} onClose={()=>setShowModal(false)} title={editing?'Edit Medication':'Add Medication'} size="md">
         <form onSubmit={handleSave} style={{display:'flex',flexDirection:'column',gap:'14px'}}>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+          <div className="grid-2">
             <Input label="Medication Name *" placeholder="e.g. Paracetamol" value={form.name} onChange={set('name')} required/>
             <Input label="Dosage *" placeholder="e.g. 500mg" value={form.dosage} onChange={set('dosage')} required/>
           </div>
@@ -110,16 +111,16 @@ export default function MedicationsPage() {
           <Input label="Times (comma-separated)" placeholder="e.g. 08:00, 20:00"
             value={Array.isArray(form.times)?form.times.join(', '):form.times}
             onChange={e=>setForm(p=>({...p,times:e.target.value.split(',').map(t=>t.trim())}))}/>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+          <div className="grid-2">
             <Input label="Start Date" type="date" value={form.startDate} onChange={set('startDate')}/>
             <Input label="End Date" type="date" value={form.endDate} onChange={set('endDate')}/>
           </div>
-          <div style={{display:'grid',gridTemplateColumns:'1fr 1fr',gap:'14px'}}>
+          <div className="grid-2">
             <Input label="Quantity" type="number" placeholder="e.g. 30" value={form.quantity} onChange={set('quantity')}/>
             <Input label="Refill Threshold" type="number" placeholder="e.g. 7" value={form.refillThreshold} onChange={set('refillThreshold')}/>
           </div>
           <Textarea label="Instructions" placeholder="e.g. Take after food" value={form.instructions} onChange={set('instructions')}/>
-          <div style={{display:'flex',justifyContent:'flex-end',gap:'10px',paddingTop:'8px',borderTop:'1px solid var(--border-color)'}}>
+          <div className="modal-footer">
             <Button type="button" variant="secondary" onClick={()=>setShowModal(false)}>Cancel</Button>
             <Button type="submit" loading={saving}>{editing?'Save Changes':'Add Medication'}</Button>
           </div>

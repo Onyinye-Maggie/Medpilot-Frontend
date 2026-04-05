@@ -7,6 +7,7 @@ import {
 } from '../components/UI';
 import toast from 'react-hot-toast';
 import { format } from 'date-fns';
+import './ResponsiveGrid.css';
 
 const STATUS_OPTIONS = [
   { value: 'active', label: 'Active' },

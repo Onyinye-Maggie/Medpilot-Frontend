@@ -1,0 +1,24 @@
+/* Shared responsive grid helpers used by modal form grids */
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.grid-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 14px; }
+
+.modal-footer {
+  display: flex; justify-content: flex-end; gap: 10px;
+  padding-top: 12px; border-top: 1px solid var(--border-color);
+  margin-top: 4px; flex-wrap: wrap;
+}
+
+/* Search + filter row */
+.filter-row {
+  display: flex; gap: 12px; flex-wrap: wrap;
+  align-items: flex-start;
+}
+.filter-row .filter-search { flex: 1; min-width: 200px; }
+.filter-row .filter-select { min-width: 150px; }
+
+@media (max-width: 580px) {
+  .grid-2, .grid-3 { grid-template-columns: 1fr; }
+  .filter-row      { flex-direction: column; }
+  .filter-row .filter-search,
+  .filter-row .filter-select { width: 100%; min-width: unset; }
+}

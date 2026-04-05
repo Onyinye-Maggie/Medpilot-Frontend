@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { Input, Select, Button } from '../components/UI';
 import toast from 'react-hot-toast';
 import './AuthPages.css';
+import './ResponsiveGrid.css';
 
 const ROLES = [
   { value: 'patient',    label: 'Patient' },

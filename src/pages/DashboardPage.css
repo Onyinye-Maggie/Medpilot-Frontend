@@ -1,195 +1,113 @@
+/* ─── Stats grid ──────────────────────────────────────────── */
 .stats-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: 14px; margin-bottom: 20px;
 }
 
+/* ─── Main content grid ───────────────────────────────────── */
 .dashboard-grid {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 20px;
+  gap: 16px;
 }
 
-.dashboard-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-}
+.dashboard-card { display: flex; flex-direction: column; }
 
 .dashboard-card__header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 20px;
+  display: flex; align-items: center;
+  justify-content: space-between; margin-bottom: 18px;
+  flex-wrap: wrap; gap: 8px;
 }
-
 .dashboard-card__title {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: var(--text-primary);
+  display: flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
 }
+.dashboard-card__title svg { color: var(--accent-primary); flex-shrink: 0; }
 
-.dashboard-card__title svg {
-  color: var(--accent-primary);
-}
-
-/* Appointments List */
-.loading-list { display: flex; flex-direction: column; gap: 12px; }
+/* ─── Dose / refill list items ────────────────────────────── */
+.loading-list  { display: flex; flex-direction: column; gap: 10px; }
 .appt-skeleton { display: flex; gap: 12px; align-items: center; }
 
 .empty-list {
   display: flex; flex-direction: column; align-items: center;
-  gap: 10px; padding: 40px 0;
-  color: var(--text-muted);
-  font-size: 14px;
+  gap: 10px; padding: 32px 0; color: var(--text-muted); font-size: 14px;
 }
 
 .appt-list { display: flex; flex-direction: column; gap: 2px; }
 
 .appt-item {
-  display: flex;
-  align-items: center;
-  gap: 14px;
-  padding: 12px;
-  border-radius: var(--radius-md);
-  transition: var(--transition);
+  display: flex; align-items: center; gap: 12px;
+  padding: 10px; border-radius: var(--radius-md); transition: var(--transition);
 }
-
 .appt-item:hover { background: var(--bg-secondary); }
 
 .appt-time {
-  display: flex; flex-direction: column;
-  align-items: center;
-  min-width: 44px;
-  background: var(--accent-primary-dim);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
+  display: flex; flex-direction: column; align-items: center;
+  min-width: 42px; background: var(--accent-primary-dim);
+  border-radius: var(--radius-sm); padding: 5px 7px; flex-shrink: 0;
 }
-
-.appt-time__hour {
-  font-size: 13px; font-weight: 700;
-  color: var(--accent-primary);
-  font-family: var(--font-mono);
-  line-height: 1;
-}
-
-.appt-time__date {
-  font-size: 10px; color: var(--text-muted);
-  margin-top: 2px;
-}
+.appt-time__hour { font-size: 12px; font-weight: 700; color: var(--accent-primary); font-family: var(--font-mono); line-height: 1; }
+.appt-time__date { font-size: 10px; color: var(--text-muted); margin-top: 2px; }
 
 .appt-details { flex: 1; min-width: 0; }
-
 .appt-patient {
-  font-size: 14px; font-weight: 600;
-  color: var(--text-primary);
+  font-size: 14px; font-weight: 600; color: var(--text-primary);
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
-
 .appt-reason {
-  font-size: 12px; color: var(--text-muted);
-  margin-top: 2px;
+  font-size: 12px; color: var(--text-muted); margin-top: 1px;
   white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* Overview */
-.overview-list { display: flex; flex-direction: column; gap: 4px; margin-bottom: 20px; }
-
-.overview-item {
-  display: flex; align-items: center; gap: 12px;
-  padding: 10px 12px; border-radius: var(--radius-sm);
-  transition: var(--transition);
-}
-.overview-item:hover { background: var(--bg-secondary); }
-
-.overview-dot {
-  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
-}
-.overview-dot--primary { background: var(--accent-primary); }
-.overview-dot--info { background: var(--accent-secondary); }
-.overview-dot--warning { background: var(--accent-warning); }
-.overview-dot--success { background: var(--accent-success); }
-.overview-dot--danger { background: var(--accent-danger); }
-
-.overview-content { flex: 1; display: flex; justify-content: space-between; align-items: center; }
-
-.overview-label { font-size: 13px; color: var(--text-secondary); }
-.overview-value { font-size: 15px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
-
-/* System Info */
-.system-info {
-  border-top: 1px solid var(--border-color);
-  padding-top: 14px;
-  display: flex; flex-direction: column; gap: 6px;
-  margin-top: auto;
-}
-.system-info__row {
-  display: flex; justify-content: space-between;
-  font-size: 12px; color: var(--text-muted);
-  font-family: var(--font-mono);
-}
-.system-ok { color: var(--accent-success); }
-
-/* Responsive */
-@media (max-width: 1100px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
-}
-
-@media (max-width: 768px) {
-  .stats-grid { grid-template-columns: 1fr 1fr; }
-  .dashboard-grid { grid-template-columns: 1fr; }
-}
-
-@media (max-width: 480px) {
-  .stats-grid { grid-template-columns: 1fr; }
-}
-
-/* Adherence circle */
-.adherence-circle {
-  position: relative; width: 140px; height: 140px;
-  margin: 0 auto 20px;
-}
-.adherence-svg { width: 100%; height: 100%; }
+/* ─── Adherence circle ────────────────────────────────────── */
+.adherence-circle { position: relative; width: 130px; height: 130px; margin: 0 auto 16px; }
+.adherence-svg   { width: 100%; height: 100%; }
 .adherence-value {
   position: absolute; inset: 0;
   display: flex; align-items: center; justify-content: center;
-  font-size: 26px; font-weight: 700; color: var(--text-primary);
-  font-family: var(--font-mono);
+  font-size: 24px; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono);
 }
-.adherence-breakdown { display: flex; flex-direction: column; gap: 4px; }
+
+.adherence-breakdown { display: flex; flex-direction: column; gap: 2px; }
 .breakdown-item {
   display: flex; align-items: center; gap: 8px;
   font-size: 13px; color: var(--text-secondary);
-  padding: 6px 0; border-bottom: 1px solid rgba(0,212,170,0.05);
+  padding: 5px 0; border-bottom: 1px solid rgba(0,212,170,0.05);
 }
 .breakdown-item:last-child { border-bottom: none; }
-.breakdown-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-.breakdown-val { margin-left: auto; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
+.breakdown-dot   { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+.breakdown-val   { margin-left: auto; font-weight: 700; color: var(--text-primary); font-family: var(--font-mono); }
 
-/* History chart */
-.history-chart {
-  display: flex; gap: 4px; align-items: flex-end;
-  height: 100px; padding-top: 8px;
-}
-.history-bar-wrap {
-  flex: 1; display: flex; flex-direction: column;
-  align-items: center; gap: 4px; height: 100%;
-}
+/* ─── History bar chart ───────────────────────────────────── */
+.history-chart { display: flex; gap: 3px; align-items: flex-end; height: 90px; padding-top: 8px; }
+.history-bar-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 3px; height: 100%; }
 .history-bar {
   flex: 1; width: 100%; background: var(--bg-secondary);
-  border-radius: 3px; overflow: hidden;
-  display: flex; align-items: flex-end;
+  border-radius: 3px; overflow: hidden; display: flex; align-items: flex-end;
 }
-.history-bar__fill {
-  width: 100%; min-height: 2px;
-  border-radius: 3px;
-  transition: height 0.4s ease;
+.history-bar__fill  { width: 100%; min-height: 2px; border-radius: 3px; transition: height 0.4s ease; }
+.history-bar__label { font-size: 9px; color: var(--text-muted); font-family: var(--font-mono); }
+
+/* ─── Breakpoints ─────────────────────────────────────────── */
+/* Large: 4-col stats, 2-col cards */
+@media (max-width: 1200px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); }
 }
-.history-bar__label {
-  font-size: 9px; color: var(--text-muted);
-  font-family: var(--font-mono);
+
+@media (max-width: 900px) {
+  .dashboard-grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 600px) {
+  .stats-grid { grid-template-columns: repeat(2, 1fr); gap: 10px; }
+  .dashboard-grid { gap: 12px; }
+  .adherence-circle { width: 110px; height: 110px; }
+  .adherence-value  { font-size: 20px; }
+}
+
+@media (max-width: 380px) {
+  .stats-grid { grid-template-columns: 1fr; }
+  .appt-item  { gap: 8px; }
+  .appt-patient { font-size: 13px; }
 }
