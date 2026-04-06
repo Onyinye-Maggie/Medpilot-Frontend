@@ -22,8 +22,15 @@ export default function DashboardPage() {
           dashboardAPI.get(),
           dashboardAPI.adherenceHistory(),
         ]);
-        if (dRes.status === 'fulfilled') setDash(dRes.value.data?.data || dRes.value.data);
-        if (hRes.status === 'fulfilled') setHistory(hRes.value.data?.data || []);
+        if (dRes.status === 'fulfilled') {
+        // Response: { success, message, data: { overview, today, adherence, refills } }
+        setDash(dRes.value.data?.data || dRes.value.data);
+      }
+        if (hRes.status === 'fulfilled') {
+        // Response: { success, message, data: [...] }
+        const hist = hRes.value.data?.data || [];
+        setHistory(Array.isArray(hist) ? hist : []);
+      }
       } catch {/* silent */}
       finally { setLoading(false); }
     };
