@@ -31,6 +31,7 @@ export default function RefillsPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -105,6 +106,9 @@ export default function RefillsPage() {
       fetchAll();
     } catch (err) {
       const data = err?.response?.data;
+      console.log('[Refill Debug] Status:', err?.response?.status);
+      console.log('[Refill Debug] Response:', JSON.stringify(data, null, 2));
+      setDebugInfo({ status: err?.response?.status, payload, response: data });
       const msg = data?.message ||
         (Array.isArray(data?.errors) ? data.errors.map(e => e.message || e.msg).join(', ') : null) ||
         'Failed to submit refill request';
@@ -129,6 +133,7 @@ export default function RefillsPage() {
   const openCreate = (prefillMedId = '') => {
     setForm({ ...DEFAULT_FORM, medication: prefillMedId });
     setErrors({});
+    setDebugInfo(null);
     setShowModal(true);
   };
 
@@ -255,6 +260,15 @@ export default function RefillsPage() {
           <Textarea label="Notes (optional)" placeholder="e.g. Running low on medication"
             value={form.notes} onChange={set('notes')} />
 
+          {debugInfo && (
+            <div style={{ background:'#0b1f2e', border:'1px solid rgba(255,71,87,0.3)', borderRadius:'8px', padding:'12px', fontSize:'11px', fontFamily:'monospace', color:'#e8f4f0' }}>
+              <p style={{color:'#ff4757',fontWeight:700,marginBottom:'8px'}}>⚠ Server Error (status {debugInfo.status}):</p>
+              <p style={{color:'#7a9bac',marginBottom:'4px'}}>Payload sent:</p>
+              <pre style={{background:'#040d14',padding:'8px',borderRadius:'4px',overflow:'auto',marginBottom:'8px',fontSize:'10px'}}>{JSON.stringify(debugInfo.payload, null, 2)}</pre>
+              <p style={{color:'#7a9bac',marginBottom:'4px'}}>Server said:</p>
+              <pre style={{background:'#040d14',padding:'8px',borderRadius:'4px',overflow:'auto',fontSize:'10px'}}>{JSON.stringify(debugInfo.response, null, 2)}</pre>
+            </div>
+          )}
           <div className="modal-footer">
             <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
             <Button type="submit" loading={saving}>Submit Request</Button>
