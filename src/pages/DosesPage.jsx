@@ -12,25 +12,34 @@ const STATUS_OPTIONS = [
   { value: 'skipped', label: 'Skipped' },
 ];
 
-const DEFAULT_FORM = {
-  medication: '',
-  scheduledTime: '',   // datetime-local input value
-  status: 'taken',
-  takenAt: '',         // datetime-local input value
-  notes: '',
-};
-
-// Convert "YYYY-MM-DDTHH:MM" (datetime-local) → "YYYY-MM-DDTHH:MM:00.000Z" (ISO)
+// datetime-local value "2026-04-06T08:00" → full ISO "2026-04-06T08:00:00.000Z"
 const toISO = (dtLocal) => {
-  if (!dtLocal) return undefined;
-  // datetime-local gives "2026-04-06T08:00" — convert to ISO
-  return new Date(dtLocal).toISOString();
+  if (!dtLocal || dtLocal.trim() === '') return null;
+  const d = new Date(dtLocal);
+  if (isNaN(d.getTime())) return null;
+  return d.toISOString();
 };
 
-// Convert ISO → datetime-local input format "YYYY-MM-DDTHH:MM"
+// ISO → datetime-local format for input value
 const toLocal = (iso) => {
   if (!iso) return '';
-  return iso.slice(0, 16); // "2026-04-06T08:00"
+  try { return new Date(iso).toISOString().slice(0, 16); }
+  catch { return ''; }
+};
+
+// Get current datetime-local string
+const nowLocal = () => {
+  const d = new Date();
+  d.setSeconds(0, 0);
+  return d.toISOString().slice(0, 16);
+};
+
+const DEFAULT_FORM = {
+  medication: '',
+  scheduledTime: '',
+  status: 'taken',
+  takenAt: '',
+  notes: '',
 };
 
 export default function DosesPage() {
@@ -43,7 +52,6 @@ export default function DosesPage() {
   const [form, setForm] = useState(DEFAULT_FORM);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
-  const [debugInfo, setDebugInfo] = useState(null);
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -81,24 +89,22 @@ export default function DosesPage() {
   });
 
   const openCreate = () => {
-    // Pre-fill scheduledTime to now
-    const now = new Date();
-    now.setSeconds(0, 0);
+    const now = nowLocal();
     setForm({
-      ...DEFAULT_FORM,
-      scheduledTime: toLocal(now.toISOString()),
-      takenAt: toLocal(now.toISOString()),
       medication: medOptions[0]?.value || '',
+      scheduledTime: now,
+      status: 'taken',
+      takenAt: now,
+      notes: '',
     });
     setEditing(null);
     setErrors({});
-    setDebugInfo(null);
     setShowModal(true);
   };
 
   const openEdit = (d) => {
     setForm({
-      medication: d.medication?._id || d.medication?.id || d.medication || '',
+      medication: d.medication?._id || d.medication?.id || (typeof d.medication === 'string' ? d.medication : ''),
       scheduledTime: d.scheduledTime ? toLocal(d.scheduledTime) : '',
       status: d.status || 'taken',
       takenAt: d.takenAt ? toLocal(d.takenAt) : '',
@@ -111,29 +117,30 @@ export default function DosesPage() {
 
   const validate = () => {
     const e = {};
-    if (!form.medication)     e.medication = 'Please select a medication';
-    if (!form.scheduledTime)  e.scheduledTime = 'Scheduled time is required';
+    if (!form.medication)    e.medication = 'Please select a medication';
+    if (!form.scheduledTime) e.scheduledTime = 'Scheduled time is required';
     return e;
   };
 
-  const handleSave = async (e) => {
-    e.preventDefault();
+  const handleSave = async (evt) => {
+    evt.preventDefault();
     const errs = validate();
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
-    try {
-      // Build payload exactly as Postman shows — ISO strings
-      const payload = {
-        medication: form.medication,
-        scheduledTime: toISO(form.scheduledTime),
-        status: form.status,
-        notes: form.notes || undefined,
-      };
-      // Only include takenAt if status is 'taken' and value provided
-      if (form.status === 'taken' && form.takenAt) {
-        payload.takenAt = toISO(form.takenAt);
-      }
 
+    // Build payload OUTSIDE try so it's in scope for error logging
+    const scheduledISO = toISO(form.scheduledTime);
+    const takenISO     = toISO(form.takenAt) || scheduledISO; // fallback to scheduledTime
+
+    const payload = {
+      medication:    form.medication,
+      scheduledTime: scheduledISO,
+      status:        form.status,
+      takenAt:       form.status === 'taken' ? takenISO : scheduledISO,
+      notes:         form.notes || '',
+    };
+
+    try {
       if (editing) {
         await dosesAPI.update(editing._id || editing.id, payload);
         toast.success('Dose log updated');
@@ -145,13 +152,12 @@ export default function DosesPage() {
       fetchAll();
     } catch (err) {
       const data = err?.response?.data;
-      console.log('[Dose Debug] Status:', err?.response?.status);
-      console.log('[Dose Debug] Response:', JSON.stringify(data, null, 2));
-      setDebugInfo({ status: err?.response?.status, payload: { ...payload, medication: payload.medication }, response: data });
-      const msg = data?.message ||
-        (Array.isArray(data?.errors) ? data.errors.map(e => e.message || e.msg).join(', ') : null) ||
-        'Failed to save dose log';
-      toast.error(msg, { duration: 6000 });
+      const serverMsg = data?.message
+        || (Array.isArray(data?.errors) ? data.errors.map(e => e.message || e.msg).join(', ') : null)
+        || (typeof data === 'string' ? data : null)
+        || err?.message
+        || 'Failed to save dose log';
+      toast.error(serverMsg, { duration: 6000 });
     } finally {
       setSaving(false);
     }
@@ -185,11 +191,11 @@ export default function DosesPage() {
     },
     {
       key: 'scheduledTime', label: 'Scheduled',
-      render: (v) => v ? format(parseISO(v), 'dd MMM yyyy HH:mm') : '—'
+      render: (v) => { try { return v ? format(parseISO(v), 'dd MMM yyyy HH:mm') : '—'; } catch { return '—'; } }
     },
     {
       key: 'takenAt', label: 'Taken At',
-      render: (v) => v ? format(parseISO(v), 'HH:mm') : '—'
+      render: (v) => { try { return v ? format(parseISO(v), 'HH:mm') : '—'; } catch { return '—'; } }
     },
     {
       key: 'status', label: 'Status',
@@ -220,8 +226,7 @@ export default function DosesPage() {
         title="Dose Log"
         subtitle="Track when you take your medications"
         actions={
-          <Button icon={<Plus size={16} />} onClick={openCreate}
-            disabled={activeMeds.length === 0}>
+          <Button icon={<Plus size={16} />} onClick={openCreate} disabled={activeMeds.length === 0}>
             Log Dose
           </Button>
         }
@@ -230,7 +235,7 @@ export default function DosesPage() {
       {!loading && activeMeds.length === 0 && (
         <Card style={{ marginBottom: '20px', padding: '16px', borderColor: 'rgba(255,165,2,0.3)', background: 'rgba(255,165,2,0.05)' }}>
           <p style={{ color: 'var(--accent-warning)', fontSize: '14px' }}>
-            ⚠ You need to add medications first before logging doses.
+            ⚠ Add medications first before logging doses.
           </p>
         </Card>
       )}
@@ -240,53 +245,71 @@ export default function DosesPage() {
           value={search} onChange={e => setSearch(e.target.value)} />
       </Card>
 
-      <Table columns={columns} data={filtered} loading={loading} emptyMessage="No dose logs yet. Log your first dose above." />
+      <Table columns={columns} data={filtered} loading={loading}
+        emptyMessage="No dose logs yet. Log your first dose above." />
 
       <Modal isOpen={showModal} onClose={() => setShowModal(false)}
         title={editing ? 'Edit Dose Log' : 'Log a Dose'} size="md">
         <form onSubmit={handleSave} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
 
+          {/* Medication select */}
           <div className="form-field">
             <label className="form-label">Medication *</label>
             <div className={`input-wrap ${errors.medication ? 'input-wrap--error' : ''}`}>
-              <select className="form-input form-select" value={form.medication}
-                onChange={(e) => { setForm(p => ({ ...p, medication: e.target.value })); setErrors(p => ({ ...p, medication: '' })); }}>
-                <option value="">Select medication…</option>
-                {medOptions.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <select
+                className="form-input form-select"
+                value={form.medication}
+                onChange={(e) => { setForm(p => ({ ...p, medication: e.target.value })); setErrors(p => ({ ...p, medication: '' })); }}
+              >
+                <option value="">Select a medication…</option>
+                {medOptions.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
             {errors.medication && <span className="form-error">{errors.medication}</span>}
           </div>
 
-          <div className="grid-2">
-            <Input label="Scheduled Time *" type="datetime-local"
-              value={form.scheduledTime} onChange={set('scheduledTime')} error={errors.scheduledTime} />
-            <Input label="Time Taken (if taken)" type="datetime-local"
-              value={form.takenAt} onChange={set('takenAt')} />
-          </div>
-
+          {/* Status */}
           <div className="form-field">
             <label className="form-label">Status *</label>
             <div className="input-wrap">
-              <select className="form-input form-select" value={form.status}
-                onChange={(e) => setForm(p => ({ ...p, status: e.target.value }))}>
-                {STATUS_OPTIONS.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
+              <select
+                className="form-input form-select"
+                value={form.status}
+                onChange={(e) => setForm(p => ({ ...p, status: e.target.value }))}
+              >
+                {STATUS_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
+                ))}
               </select>
             </div>
           </div>
 
-          <Textarea label="Notes (optional)" placeholder="e.g. Taken after breakfast"
-            value={form.notes} onChange={set('notes')} />
+          {/* Date/time fields */}
+          <div className="grid-2">
+            <Input
+              label="Scheduled Time *"
+              type="datetime-local"
+              value={form.scheduledTime}
+              onChange={set('scheduledTime')}
+              error={errors.scheduledTime}
+            />
+            <Input
+              label={form.status === 'taken' ? 'Time Taken' : 'Time (optional)'}
+              type="datetime-local"
+              value={form.takenAt}
+              onChange={set('takenAt')}
+            />
+          </div>
 
-          {debugInfo && (
-            <div style={{ background:'#0b1f2e', border:'1px solid rgba(255,71,87,0.3)', borderRadius:'8px', padding:'12px', fontSize:'11px', fontFamily:'monospace', color:'#e8f4f0' }}>
-              <p style={{color:'#ff4757',fontWeight:700,marginBottom:'8px'}}>⚠ Server Error (status {debugInfo.status}):</p>
-              <p style={{color:'#7a9bac',marginBottom:'4px'}}>Payload sent:</p>
-              <pre style={{background:'#040d14',padding:'8px',borderRadius:'4px',overflow:'auto',marginBottom:'8px',fontSize:'10px'}}>{JSON.stringify(debugInfo.payload, null, 2)}</pre>
-              <p style={{color:'#7a9bac',marginBottom:'4px'}}>Server said:</p>
-              <pre style={{background:'#040d14',padding:'8px',borderRadius:'4px',overflow:'auto',fontSize:'10px'}}>{JSON.stringify(debugInfo.response, null, 2)}</pre>
-            </div>
-          )}
+          <Textarea
+            label="Notes (optional)"
+            placeholder="e.g. Taken after breakfast"
+            value={form.notes}
+            onChange={set('notes')}
+          />
+
           <div className="modal-footer">
             <Button type="button" variant="secondary" onClick={() => setShowModal(false)}>Cancel</Button>
             <Button type="submit" loading={saving}>{editing ? 'Save Changes' : 'Log Dose'}</Button>
