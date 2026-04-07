@@ -137,8 +137,8 @@ export default function DosesPage() {
       scheduledTime: scheduledISO,
       status:        form.status,
       takenAt:       form.status === 'taken' ? takenISO : scheduledISO,
-      notes:         form.notes || '',
     };
+    if (form.notes && form.notes.trim()) payload.notes = form.notes.trim();
 
     try {
       if (editing) {

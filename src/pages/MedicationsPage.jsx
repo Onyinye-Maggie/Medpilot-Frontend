@@ -109,11 +109,11 @@ export default function MedicationsPage() {
         times,                                    // array of "HH:MM" strings
         startDate: form.startDate,                // "YYYY-MM-DD" string
         quantity: Number(form.quantity),          // integer
-        instructions: form.instructions.trim(),
       };
       // Only add optional fields if provided
-      if (form.endDate)           payload.endDate = form.endDate;
-      if (form.refillThreshold)   payload.refillThreshold = Number(form.refillThreshold);
+      if (form.endDate)                           payload.endDate = form.endDate;
+      if (form.refillThreshold)                   payload.refillThreshold = Number(form.refillThreshold);
+      if (form.instructions && form.instructions.trim()) payload.instructions = form.instructions.trim();
 
       if (editing) {
         await medicationsAPI.update(editing._id || editing.id, payload);

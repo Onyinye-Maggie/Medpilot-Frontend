@@ -87,15 +87,16 @@ export default function RefillsPage() {
     if (Object.keys(errs).length) { setErrors(errs); return; }
     setSaving(true);
 
-    // Build payload OUTSIDE try — send all fields like Postman does
+    // Build payload — only include optional fields if non-empty
+    // (sending empty strings fails backend Joi validation with min(1))
     const payload = {
-      medication:      form.medication,
-      pharmacyName:    form.pharmacyName.trim(),
-      pharmacyAddress: form.pharmacyAddress.trim() || '',
-      pharmacyPhone:   form.pharmacyPhone.trim()   || '',
-      quantity:        Number(form.quantity),
-      notes:           form.notes.trim()            || '',
+      medication:   form.medication,
+      pharmacyName: form.pharmacyName.trim(),
+      quantity:     Number(form.quantity),
     };
+    if (form.pharmacyAddress.trim()) payload.pharmacyAddress = form.pharmacyAddress.trim();
+    if (form.pharmacyPhone.trim())   payload.pharmacyPhone   = form.pharmacyPhone.trim();
+    if (form.notes.trim())           payload.notes           = form.notes.trim();
 
     try {
       await refillsAPI.create(payload);
