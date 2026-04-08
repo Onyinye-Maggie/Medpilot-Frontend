@@ -70,10 +70,10 @@ npm run build
 
 ## Deployment
 
-### Netlify / Vercel
+### Netlify 
 
 1. Push to GitHub
-2. Connect repo in Netlify/Vercel dashboard
+2. Connect repo in Netlify dashboard
 3. Set **Build command**: `npm run build`
 4. Set **Publish directory**: `build`
 5. Add environment variable: `REACT_APP_API_URL=https://medpilot-backend.onrender.com`
